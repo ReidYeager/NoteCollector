@@ -116,8 +116,7 @@ void PrintAllFiles(std::string _initialDir, std::string _searchDir, std::ofstrea
 				std::string numberString = number;
 
 				std::string finalLine = "\t";
-				finalLine = finalLine + printToken;
-				finalLine = finalLine + " :--: Line ";
+				finalLine = finalLine + "Line ";
 				finalLine = finalLine + number;
 				finalLine = finalLine + " :--: ";
 				finalLine = finalLine + trimLine;
