@@ -1,0 +1,7 @@
+Root :--: .
+
+\NoteCollectorSettings.txt
+  Line    1 :--: ToDo token = " TODO :
+  Line    2 :--: Note token = " NOTE :
+\source.cpp
+  Line  184 :--: // TODO : Analyze the files directly from disk rather than copying them into a buffer
