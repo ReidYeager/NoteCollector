@@ -1,7 +1,32 @@
-Root :--: .
+==========
+Root : .
 
+\bin\x64-release\NoteCollectorSettings.txt
+  Line    1 : 'Token   = " TODO :'
+  Line    2 : '"
+Token= " NOTE :'
+\bin\x64-release\ToDo.txt
+  Line    5 : 'h
+  Line   24 :-- '// TODO : Camera rotation via mouse movement'
+  Line   13 : 'p
+  Line   82 :-- '// TODO : Hard-code default texture information into engine so it doesn't have to load anything'
+  Line   14 : ''
+  Line  374 :-- '// TODO : Create buffers for multiple instances of a material (instead of creating multiple materials)'
+  Line   35 : ''
+  Line   94 :-- '// TODO : Account for parent transform in camera matrix'
+  Line   36 : ''
+  Line  102 :-- '// TODO : Create a default mesh and default material for new objects to use'
+  Line   39 : ''
+  Line  158 :-- 'tc->bufferSegment.elementSize = 64; // TODO : Define per-object buffer size somewhere else.'
+  Line   78 : ''
+  Line   20 :-- '// NOTE : Given the frequency this is called, should use something more efficient than virtual.'
+  Line   88 : ''
+  Line  187 :-- '// TODO : Add camera render target'
+  Line   89 : ''
+  Line  200 :-- '// TODO : Rework the renderComponent to not chase pointers'
 \NoteCollectorSettings.txt
-  Line    1 :--: ToDo token = " TODO :
-  Line    2 :--: Note token = " NOTE :
+  Line    1 : 'Token = " TODO :'
+  Line    2 : '"
+Token = " NOTE :'
 \source.cpp
-  Line  184 :--: // TODO : Analyze the files directly from disk rather than copying them into a buffer
+  Line  172 : '// TODO : Analyze the files directly from disk rather than copying them into a buffer'

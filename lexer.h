@@ -49,6 +49,7 @@ namespace ITools {
     ITools::TokenTypes type{};
     std::string string{};
     const char* start = 0;
+    const char* end = 0;
   };
 
   class Lexer
@@ -88,7 +89,7 @@ namespace ITools {
 
       if (CompletedStream())
       {
-        return { Token_End, "", charStream};
+        return { Token_End, "", charStream, charStream};
       }
 
       // Get token =====
@@ -219,7 +220,7 @@ namespace ITools {
       // Empty read
       if (_count == 0)
       {
-        return { Token_String, std::string(""), charStream };
+        return { Token_String, std::string(""), charStream, charStream};
       }
 
       // Read =====
@@ -232,7 +233,10 @@ namespace ITools {
         stringLength++;
       }
 
-      return { Token_String, std::string(stringBeginning, stringLength), stringBeginning };
+      return { Token_String,
+               std::string(stringBeginning, stringLength),
+               stringBeginning,
+               stringBeginning + stringLength - 1 };
     }
 
     // Creates a string token of all characters up to the first instance of the key character
@@ -250,7 +254,10 @@ namespace ITools {
         stringLength++;
       }
 
-      return { Token_String, std::string(stringBeginning, stringLength), stringBeginning };
+      return { Token_String,
+               std::string(stringBeginning, stringLength),
+               stringBeginning,
+               stringBeginning + stringLength - 1 };
     }
 
     // Creates a string token of all characters including the first instance of the key character
@@ -271,7 +278,10 @@ namespace ITools {
       charStream++;
       stringLength++;
 
-      return { Token_String, std::string(stringBeginning, stringLength), stringBeginning };
+      return { Token_String,
+               std::string(stringBeginning, stringLength),
+               stringBeginning,
+               stringBeginning + stringLength - 1 };
     }
 
     // Creates a string token of all characters through the first instance of the key string
@@ -338,7 +348,10 @@ namespace ITools {
         stringLength--;
       }
 
-      *_outToken = { Token_String, std::string(stringBeginning, stringLength), stringBeginning };
+      *_outToken = { Token_String,
+                     std::string(stringBeginning, stringLength),
+                     stringBeginning,
+                     stringBeginning + stringLength - 1 };
 
       return keyFound - 1;
     }
@@ -366,7 +379,10 @@ namespace ITools {
         stringLength++;
       }
 
-      *_outToken = { Token_String, std::string(stringBeginning, stringLength), stringBeginning };
+      *_outToken = { Token_String,
+                     std::string(stringBeginning, stringLength),
+                     stringBeginning,
+                     stringBeginning + stringLength - 1 };
 
       return keyFound - 1;
     }
@@ -587,7 +603,10 @@ return strtol(_token->string.c_str(), nullptr, 2);
         stringLength++;
       }
 
-      return { Token_String, std::string(stringBegining, stringLength), stringBegining };
+      return { Token_String,
+               std::string(stringBegining, stringLength),
+               stringBegining,
+               stringBegining + stringLength - 1 };
     }
 
     ITools::LexerToken GetNumberToken(bool _isHex = false)
@@ -654,7 +673,10 @@ return strtol(_token->string.c_str(), nullptr, 2);
         stringLength++;
       }
 
-      return { Token_Whitespace, std::string(stringBeginning, stringLength), stringBeginning };
+      return { Token_Whitespace,
+               std::string(stringBeginning, stringLength),
+               stringBeginning,
+               stringBeginning + stringLength - 1 };
     }
 
     ITools::TokenTypes GetCharacterType(char _char, bool _expectHex = false)

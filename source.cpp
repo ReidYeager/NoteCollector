@@ -17,48 +17,40 @@ std::string outStringRightCap = "";
 
 std::string outStringSeparator = ":";
 
-std::string rootDir;
-
 int main()
 {
   std::string outDir;
-  std::string todo;
-  std::string note;
+  std::vector<std::string> rootDirs;
 
-  GetSettings(&outDir, &rootDir, &todo, &note);
-
-  if (todo.size() > 0)
-  {
-    tokenStrings.push_back(todo);
-    tokenStartCharacters.push_back(todo.c_str()[0]);
-  }
-  if (note.size() > 0)
-  {
-    tokenStrings.push_back(note);
-    tokenStartCharacters.push_back(note.c_str()[0]);
-  }
-  tokenStartCharacters.push_back('\n'); // Used to count lines
+  GetSettings(&rootDirs, &outDir);
+  tokenStartCharacters.push_back('\n'); // Used to count lines\
 
   std::ofstream outFile;
   outFile.open(outDir, std::ios_base::binary);
   outFile.clear();
 
   char rootBuffer[1024];
-  sprintf(rootBuffer, "Root %s %s\n\n", outStringSeparator.c_str(), rootDir.c_str());
+  int rootIndex = 0;
 
-  outFile.write(rootBuffer, strlen(rootBuffer));
+  for (std::string& r : rootDirs)
+  {
+    sprintf(rootBuffer, "%s==========\nRoot %s %s\n\n",
+            rootIndex ? "\n" : "",
+            outStringSeparator.c_str(),
+            r.c_str());
+    outFile.write(rootBuffer, strlen(rootBuffer));
 
-  SearchDirectory(&outFile, rootDir);
+    SearchDirectory(r.size(), &outFile, r);
+
+    rootIndex++;
+  }
 
   outFile.close();
 
   return 0;
 }
 
-void GetSettings(std::string* _output,
-                 std::string* _rootDir,
-                 std::string* _todo,
-                 std::string* _note)
+void GetSettings(std::vector<std::string>* _rootDirs, std::string* _output)
 {
   // Settings file =====
 
@@ -80,40 +72,36 @@ void GetSettings(std::string* _output,
 
   // Read settings =====
 
+  std::vector<std::string>& roots = *_rootDirs;
+
   ITools::Lexer lexer(settingsText);
   ITools::LexerToken token;
 
   while (!lexer.CompletedStream())
   {
-    if (lexer.ExpectString("ToDo token ="))
+    if (lexer.ExpectString("Token") && lexer.ExpectString("="))
     {
       lexer.ReadThrough('"');
       token = lexer.ReadTo('"');
-      *_todo = token.string;
+      tokenStrings.push_back(token.string);
+      tokenStartCharacters.push_back(token.string.c_str()[0]);
       lexer.ReadThrough('\n');
     }
-    else if (lexer.ExpectString("Note token ="))
+    else if (lexer.ExpectString("Root") && lexer.ExpectString("="))
     {
       lexer.ReadThrough('"');
       token = lexer.ReadTo('"');
-      *_note = token.string;
+      roots.push_back(token.string);
       lexer.ReadThrough('\n');
     }
-    else if (lexer.ExpectString("Scan Root ="))
-    {
-      lexer.ReadThrough('"');
-      token = lexer.ReadTo('"');
-      *_rootDir = token.string;
-      lexer.ReadThrough('\n');
-    }
-    else if (lexer.ExpectString("Output File ="))
+    else if (lexer.ExpectString("Output File") && lexer.ExpectString("="))
     {
       lexer.ReadThrough('"');
       token = lexer.ReadTo('"');
       *_output = token.string;
       lexer.ReadThrough('\n');
     }
-    else if (lexer.ExpectString("Output string endcaps ="))
+    else if (lexer.ExpectString("Output string endcaps") && lexer.ExpectString("="))
     {
       // Left endcap
       lexer.ReadThrough('"');
@@ -127,7 +115,7 @@ void GetSettings(std::string* _output,
       outStringRightCap = token.string;
       lexer.ReadThrough('\n');
     }
-    else if (lexer.ExpectString("Output string separator = "))
+    else if (lexer.ExpectString("Output string separator") && lexer.ExpectString("="))
     {
       lexer.ReadThrough('"');
       token = lexer.ReadTo('"');
@@ -145,9 +133,9 @@ void CreateSettingsFile(std::ifstream* _file)
   std::ofstream outFile;
   outFile.open(SETTINGS_FILE_DIRECTORY, std::ios_base::binary);
 
-  const char* defaultSettings = "ToDo token = \"TODO : \"\n"
-                                "Note token = \"NOTE : \"\n"
-                                "Scan Root = \".\"\n"
+  const char* defaultSettings = "Token = \"TODO : \"\n"
+                                "Token = \"NOTE : \"\n"
+                                "Root = \".\"\n"
                                 "Output File = \"ToDo.txt\"\n"
                                 "Output string endcaps = \"'\" \"'\"\n"
                                 "Output string separator = \":\"\0";
@@ -159,7 +147,7 @@ void CreateSettingsFile(std::ifstream* _file)
   _file->open(SETTINGS_FILE_DIRECTORY, std::ios_base::ate | std::ios_base::binary);
 }
 
-void SearchDirectory(std::ofstream* _output, std::string _searchDir)
+void SearchDirectory(unsigned int _rootStringLen, std::ofstream* _output, std::string _searchDir)
 {
   char lineBuffer[1024];
 
@@ -167,7 +155,7 @@ void SearchDirectory(std::ofstream* _output, std::string _searchDir)
   {
     if (entry.is_directory())
     {
-      SearchDirectory(_output, entry.path().u8string());
+      SearchDirectory(_rootStringLen, _output, entry.path().u8string());
       continue;
     }
 
@@ -211,7 +199,7 @@ void SearchDirectory(std::ofstream* _output, std::string _searchDir)
       else if (index == tokenStrings.size())
       {
         lineNumber++;
-        lineStart = token.start + token.string.size() + 1;
+        lineStart = token.end;
         lexer.Read(1); // Don't re-read '\n'
         continue;
       }
@@ -231,15 +219,17 @@ void SearchDirectory(std::ofstream* _output, std::string _searchDir)
 
       if (matchIndex != -1)
       {
+        // Print the line =====
+
         token = lexer.ReadTo('\n');
-        std::string line(lineStart, (token.start + token.string.size() - 1) - lineStart);
+        std::string line(lineStart, token.end - lineStart);
 
         if (shoudPrintFileName)
         {
           shoudPrintFileName = false;
 
           std::string localPath = entry.path().u8string();
-          localPath.erase(0, rootDir.size());
+          localPath.erase(0, _rootStringLen);
           localPath.append("\n");
           _output->write(localPath.c_str(), localPath.size());
         }
@@ -274,7 +264,7 @@ void SearchDirectory(std::ofstream* _output, std::string _searchDir)
       {
         // In case search tokens use '\n' at their start
         lineNumber++;
-        lineStart = token.start + token.string.size() + 1;
+        lineStart = token.end;
         lexer.Read(1); // Don't re-read '\n'
         continue;
       }

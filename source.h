@@ -13,20 +13,10 @@
 
 #define SETTINGS_FILE_DIRECTORY "./NoteCollectorSettings.txt"
 
-void GetSettings(std::string* _output,
-                 std::string* _rootDir,
-                 std::string* _todo,
-                 std::string* _note);
+void GetSettings(std::vector<std::string>* _rootDirs, std::string* _output);
 
 void CreateSettingsFile(std::ifstream* _file);
 
-void SearchDirectory(std::ofstream* _output, std::string _searchDir);
-
-void PrintLine(std::ofstream* _output,
-               ITools::LexerToken& token,
-               int lineNumber,
-               const char* lineStart,
-               bool shouldPrintFileName,
-               std::string _filePath);
+void SearchDirectory(unsigned int _rootStringLen, std::ofstream* _output, std::string _searchDir);
 
 #endif // !SOURCE_H_
